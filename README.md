@@ -1,61 +1,49 @@
-#Apache Yarn 2.7.1 cluster Docker image
+# Apache Spark 1.6.0 cluster Docker image
+This image is built on top of https://github.com/sfedyakov/hadoop-271-cluster, so please read its documentation first
 
 # Build the image
 
 If you'd like to try directly from the Dockerfile you can build the image as:
 
 ```
-sudo docker build  -t yarn-cluster .
+sudo docker build -t sfedyakov/spark-160-cluster .
 ```
 
-# Start an Apache Yarn namenode container
-
-In order to use the Docker image you have just build or pulled use:
+# Start cluster
 
 ```
-sudo docker run -i -t --name namenode -h namenode yarn-cluster /etc/bootstrap.sh -bash -namenode
+docker-compose scale namenode=1 datanode=2
 ```
 
-You should now be able to access the Hadoop Admin UI at
-
-http://<host>:8088/cluster
-
-**Make sure that SELinux is disabled on the host. If you are using boot2docker you don't need to do anything.**
-
-# Start an Apache Yarn datanode container
-
-In order to add data nodes to the Apache Yarn cluster, use:
+You may want to change replication factor to something greater than 1. That's super-easy!
 
 ```
-sudo docker run -i -t --link namenode:namenode --dns=namenode yarn-cluster /etc/bootstrap.sh -bash -datanode
+for z in $(docker ps -q) ; do docker exec $z sed -i 's/<value>1/<value>2/' /usr/local/hadoop/etc/hadoop/hdfs-site.xml ; done
 ```
 
-You should now be able to access the HDFS Admin UI at
 
-http://<host>:50070
-
-**Make sure that SELinux is disabled on the host. If you are using boot2docker you don't need to do anything.**
-
-## Testing
-
-You can run one of the stock examples:
+First, prepare test data
 
 ```
-cd $HADOOP_PREFIX
-
-# add input files
-bin/hdfs dfs -mkdir -p /user/root
-bin/hdfs dfs -put $HADOOP_PREFIX/etc/hadoop/ input
-
-# run the mapreduce
-bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.1.jar grep input output 'dfs[a-z.]+'
-
-# check the output
-bin/hdfs dfs -cat output/*
+docker exec -it namenode /bin/bash --login
+hdfs dfs -mkdir -p /tmp/wnp/input/ 
+curl -LO http://www.gutenberg.org/cache/epub/2600/pg2600.txt 
+hdfs dfs -put pg2600.txt /tmp/wnp/input/ 
 ```
 
-# Start Apache Yarn namenode and datanode container by using docker-compose
+
+Now run Spark shell
 
 ```
-sudo docker-compose -f docker-compose up -d
+spark-shell --master yarn
 ```
+
+Count words in War and Peace
+
+```
+val lines = sc.textFile("/tmp/wnp/input/pg2600.txt")
+lines.flatMap(l => l.split(" ")).map(w => (w.toLowerCase, 1)).reduceByKey(_+_).sortBy(z => (z._2, z._1)).collect().takeRight(50)
+```
+
+# Limitations
+Same as https://github.com/sfedyakov/hadoop-271-cluster
