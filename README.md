@@ -2,6 +2,12 @@
 This image is built on top of https://github.com/sfedyakov/hadoop-271-cluster, so please read its documentation first
 
 # Build the image
+Before you build, please download the foloowing: Scala 2.10 and Apache Spark 1.6.0.
+
+```
+curl -LO https://downloads.typesafe.com/scala/2.10.6/scala-2.10.6.rpm
+curl -LO http://apache-mirror.rbc.ru/pub/apache/spark/spark-1.6.0/spark-1.6.0-bin-without-hadoop.tgz
+```
 
 If you'd like to try directly from the Dockerfile you can build the image as:
 
@@ -35,7 +41,7 @@ hdfs dfs -put pg2600.txt /tmp/wnp/input/
 Now run Spark shell
 
 ```
-spark-shell --master yarn
+spark-shell --master yarn --num-executors 3
 ```
 
 Count words in War and Peace
