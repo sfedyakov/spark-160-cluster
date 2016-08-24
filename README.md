@@ -6,7 +6,7 @@ Before you build, please download the foloowing: Scala 2.10 and Apache Spark 1.6
 
 ```
 curl -LO https://downloads.typesafe.com/scala/2.10.6/scala-2.10.6.rpm
-curl -LO http://apache-mirror.rbc.ru/pub/apache/spark/spark-1.6.0/spark-1.6.0-bin-without-hadoop.tgz
+curl -LO https://archive.apache.org/dist/spark/spark-1.6.0/spark-1.6.0-bin-without-hadoop.tgz
 ```
 
 If you'd like to try directly from the Dockerfile you can build the image as:
